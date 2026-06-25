@@ -220,16 +220,32 @@
 
     .quote-panel {
       flex: 1;
+      position: relative;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
       min-height: 0;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--accent-rgb), 0.32) transparent;
+    }
+
+    .quote-panel::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .quote-panel::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .quote-panel::-webkit-scrollbar-thumb {
+      background: rgba(var(--accent-rgb), 0.32);
+      border-radius: 999px;
     }
 
     .quote {
       width: 100%;
-      margin: 0;
-      font-size: clamp(28px, 5vw, 48px);
+      margin: auto 0;
+      font-size: var(--quote-size, clamp(28px, 5vw, 48px));
       font-weight: 500;
       line-height: 1.55;
       letter-spacing: 0.06em;
@@ -238,6 +254,31 @@
       white-space: normal;
       word-break: normal;
       text-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      opacity: 1;
+      transition: opacity 280ms linear 280ms;
+    }
+
+    .quote.is-prepping {
+      opacity: 0;
+      transition: none;
+    }
+
+    .quote-ghost {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 280ms linear 0ms;
+    }
+
+    .quote-ghost.is-prepping {
+      opacity: 1;
+      transition: none;
     }
 
     .meta {
@@ -249,6 +290,12 @@
       padding-top: 22px;
       color: var(--muted);
       font-family: "Avenir Next", "Segoe UI", sans-serif;
+      flex-shrink: 0;
+    }
+
+    .meta > div {
+      flex: 1;
+      min-width: 0;
     }
 
     .film {
@@ -256,6 +303,9 @@
       color: var(--ink);
       font-size: 15px;
       letter-spacing: 0.16em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .year {
@@ -263,13 +313,22 @@
       color: var(--muted);
       font-size: 12px;
       letter-spacing: 0.22em;
+      min-height: 1em;
     }
 
-    .counter {
-      color: rgb(var(--accent-rgb));
-      font-size: 12px;
-      letter-spacing: 0.22em;
-      white-space: nowrap;
+    .source-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgb(var(--accent-rgb));
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18);
+      transition: background 320ms ease, box-shadow 320ms ease;
+      align-self: center;
+    }
+
+    .source-dot[data-source="online"] {
+      background: var(--gold);
+      box-shadow: 0 0 0 3px rgba(200, 161, 93, 0.22);
     }
 
     .actions {
@@ -397,8 +456,9 @@
 
     <section class="card" id="card" aria-live="polite">
       <div class="content" id="content">
-        <div class="quote-panel">
+        <div class="quote-panel" id="quotePanel">
           <h1 class="quote" id="quote"></h1>
+          <div class="quote quote-ghost" id="quoteGhost" aria-hidden="true"></div>
         </div>
 
         <footer class="meta">
@@ -406,7 +466,7 @@
             <p class="film" id="film"></p>
             <p class="year" id="year"></p>
           </div>
-          <span class="counter" id="counter"></span>
+          <span class="source-dot" id="sourceDot" data-source="local" aria-label="台词来源" title="本地"></span>
         </footer>
       </div>
     </section>
@@ -534,14 +594,17 @@
 
     const quotes = rawQuotes.map((item) => ({
       proofread: defaultProofread,
+      source: "local",
       ...item
     }));
 
     const content = document.getElementById("content");
     const quote = document.getElementById("quote");
+    const quotePanel = document.getElementById("quotePanel");
+    const quoteGhost = document.getElementById("quoteGhost");
     const film = document.getElementById("film");
     const year = document.getElementById("year");
-    const counter = document.getElementById("counter");
+    const sourceDot = document.getElementById("sourceDot");
     const nextButton = document.getElementById("nextButton");
     const searchForm = document.getElementById("searchForm");
     const searchInput = document.getElementById("searchInput");
@@ -553,7 +616,21 @@
     let activeBackdrop = 0;
     let quoteQueue = [];
 
+    const ONLINE_BUFFER_TARGET = 5;
+    const ONLINE_BUFFER_MIN = 3;
+    const ONLINE_PICK_PROBABILITY = 0.3;
+    let onlineBuffer = [];
+    let onlineRefilling = false;
+    let onlineDisabled = false;
+
     function pickQuote() {
+      if (!onlineDisabled && onlineBuffer.length > 0 && Math.random() < ONLINE_PICK_PROBABILITY) {
+        const item = onlineBuffer.shift();
+        currentIndex = -1;
+        if (onlineBuffer.length < ONLINE_BUFFER_MIN) refillOnlineBuffer();
+        return item;
+      }
+
       if (quoteQueue.length === 0) {
         quoteQueue = buildShuffledQueue(currentIndex);
       }
@@ -578,26 +655,56 @@
     }
 
     function updateText(item) {
-      quote.textContent = `“${item.text}”`;
+      const incomingText = `“${item.text}”`;
+      const incomingSize = pickQuoteSize(item.text || "");
+      const previousText = quote.textContent;
+      const previousSize = quote.style.getPropertyValue("--quote-size");
+
       film.textContent = item.film;
-      year.textContent = [item.director, item.year].filter(Boolean).join(" / ");
-      counter.textContent = `${String(currentIndex + 1).padStart(2, "0")} / ${quotes.length}`;
+      const meta = [item.director, item.year].filter(Boolean).join(" / ");
+      year.textContent = meta || " ";
+      const source = item.source === "online" ? "online" : "local";
+      sourceDot.dataset.source = source;
+      sourceDot.title = source === "online" ? "联网" : "本地";
+
+      if (!previousText) {
+        quote.textContent = incomingText;
+        quote.style.setProperty("--quote-size", incomingSize);
+        quotePanel.scrollTop = 0;
+        return;
+      }
+
+      quoteGhost.textContent = previousText;
+      if (previousSize) {
+        quoteGhost.style.setProperty("--quote-size", previousSize);
+      } else {
+        quoteGhost.style.removeProperty("--quote-size");
+      }
+      quoteGhost.classList.add("is-prepping");
+
+      quote.classList.add("is-prepping");
+      quote.textContent = incomingText;
+      quote.style.setProperty("--quote-size", incomingSize);
+      quotePanel.scrollTop = 0;
+
+      void quote.offsetWidth;
+
+      requestAnimationFrame(() => {
+        quote.classList.remove("is-prepping");
+        quoteGhost.classList.remove("is-prepping");
+      });
+    }
+
+    function pickQuoteSize(text) {
+      return text.length <= 16
+        ? "clamp(30px, 5.2vw, 48px)"
+        : "clamp(24px, 4.0vw, 36px)";
     }
 
     function renderQuote(animate = true) {
       const item = pickQuote();
       applyTheme(item);
-
-      if (!animate) {
-        updateText(item);
-        return;
-      }
-
-      content.classList.add("fade-out");
-      window.setTimeout(() => {
-        updateText(item);
-        content.classList.remove("fade-out");
-      }, 240);
+      updateText(item);
     }
 
     function applyTheme(item) {
@@ -708,8 +815,47 @@
         film,
         director: director || undefined,
         year: "",
-        themeColor: computeMoodColor(chosen.hitokoto, film, director)
+        themeColor: computeMoodColor(chosen.hitokoto, film, director),
+        source: "online"
       };
+    }
+
+    function pickRandomFromBundle(bundle) {
+      if (!Array.isArray(bundle) || bundle.length === 0) return null;
+      const chosen = bundle[Math.floor(Math.random() * bundle.length)];
+      if (!chosen || !chosen.hitokoto) return null;
+      const film = (chosen.from || "").trim();
+      const director = (chosen.from_who || "").trim();
+      return {
+        text: chosen.hitokoto,
+        film: film || "佚名",
+        director: director || undefined,
+        year: "",
+        themeColor: computeMoodColor(chosen.hitokoto, film, director),
+        source: "online"
+      };
+    }
+
+    async function refillOnlineBuffer() {
+      if (onlineRefilling || onlineDisabled) return;
+      if (onlineBuffer.length >= ONLINE_BUFFER_TARGET) return;
+      onlineRefilling = true;
+      try {
+        const bundle = await loadHitokotoBundle();
+        while (onlineBuffer.length < ONLINE_BUFFER_TARGET) {
+          const item = pickRandomFromBundle(bundle);
+          if (!item) break;
+          onlineBuffer.push(item);
+        }
+      } catch (error) {
+        onlineDisabled = true;
+      } finally {
+        onlineRefilling = false;
+      }
+    }
+
+    function preheatOnlineBuffer() {
+      refillOnlineBuffer();
     }
 
     async function fetchOnlineQuote(query) {
@@ -731,7 +877,8 @@
         film,
         director: director || undefined,
         year: "",
-        themeColor
+        themeColor,
+        source: "online"
       };
     }
 
@@ -781,12 +928,8 @@
     }
 
     function renderQuoteFromItem(item) {
-      content.classList.add("fade-out");
-      window.setTimeout(() => {
-        applyTheme(item);
-        updateText(item);
-        content.classList.remove("fade-out");
-      }, 240);
+      applyTheme(item);
+      updateText(item);
     }
 
     function computeMoodColor(text, film, director) {
@@ -879,6 +1022,7 @@
       event.preventDefault();
       handleSearch(searchInput.value);
     });
+    preheatOnlineBuffer();
     renderQuote(false);
   </script>
 </body>
