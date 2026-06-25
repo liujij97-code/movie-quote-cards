@@ -224,6 +224,7 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
+      overflow-x: hidden;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: rgba(var(--accent-rgb), 0.32) transparent;
@@ -253,6 +254,7 @@
       text-wrap: wrap;
       white-space: normal;
       word-break: normal;
+      overflow-wrap: anywhere;
       text-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
       opacity: 1;
       transition: opacity 280ms linear 280ms;
@@ -317,13 +319,16 @@
     }
 
     .source-dot {
+      position: absolute;
+      right: clamp(22px, 4.6vw, 46px);
+      bottom: calc(clamp(34px, 7vw, 72px) + 27px);
       width: 8px;
       height: 8px;
       border-radius: 50%;
       background: rgb(var(--accent-rgb));
       box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18);
       transition: background 320ms ease, box-shadow 320ms ease;
-      align-self: center;
+      z-index: 1;
     }
 
     .source-dot[data-source="online"] {
@@ -332,8 +337,135 @@
     }
 
     .actions {
+      position: relative;
       display: flex;
       justify-content: center;
+      align-items: center;
+    }
+
+    .auto-toggle {
+      position: absolute;
+      top: 50%;
+      right: calc(50% + 100px + 12px);
+      transform: translateY(-50%);
+      padding: 14px 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auto-icon {
+      display: block;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 6px 0 6px 10px;
+      border-color: transparent transparent transparent var(--ink);
+      transition: border-color 220ms ease;
+    }
+
+    .auto-toggle:hover {
+      transform: translateY(-50%);
+    }
+
+    .auto-toggle:active {
+      transform: translateY(-50%);
+    }
+
+    .auto-toggle.is-active .auto-icon {
+      animation: autoPulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes autoPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+
+    .action-stage {
+      position: relative;
+      width: 200px;
+      height: 46px;
+    }
+
+    .next-btn {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      padding: 0;
+      letter-spacing: 0.36em;
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 320ms ease, transform 320ms ease, background 420ms ease, border-color 420ms ease;
+    }
+
+    .interval-picker {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 4px;
+      border: 1px solid rgba(var(--accent-rgb), 0.56);
+      border-radius: 999px;
+      background: rgba(var(--card-rgb), 0.38);
+      opacity: 0;
+      transform: scale(0.92);
+      pointer-events: none;
+      transition: opacity 320ms ease, transform 320ms ease;
+    }
+
+    .interval-thumb {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 4px;
+      width: calc(50% - 4px);
+      border-radius: 999px;
+      background: rgba(var(--accent-rgb), 0.26);
+      transform: translateX(0);
+      transition: transform 360ms cubic-bezier(0.4, 0.05, 0.2, 1);
+      pointer-events: none;
+    }
+
+    .interval-picker[data-active="15000"] .interval-thumb {
+      transform: translateX(100%);
+    }
+
+    .action-stage[data-mode="playing"] .next-btn {
+      opacity: 0;
+      transform: scale(0.94);
+      pointer-events: none;
+    }
+
+    .action-stage[data-mode="playing"] .interval-picker {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .interval-option {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      border: none;
+      padding: 8px 0;
+      border-radius: 999px;
+      background: transparent;
+      letter-spacing: 0.22em;
+      color: var(--muted);
+      font-size: 12px;
+      transition: color 220ms ease;
+    }
+
+    .interval-option:hover {
+      transform: none;
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .interval-option.is-selected {
+      color: var(--ink);
     }
 
     button {
@@ -466,13 +598,23 @@
             <p class="film" id="film"></p>
             <p class="year" id="year"></p>
           </div>
-          <span class="source-dot" id="sourceDot" data-source="local" aria-label="台词来源" title="本地"></span>
         </footer>
       </div>
+      <span class="source-dot" id="sourceDot" data-source="local" aria-label="台词来源" title="本地"></span>
     </section>
 
     <div class="actions">
-      <button type="button" id="nextButton">下一句</button>
+      <button type="button" id="autoButton" class="auto-toggle" aria-label="自动播放" title="自动播放">
+        <span class="auto-icon" aria-hidden="true"></span>
+      </button>
+      <div class="action-stage" id="actionStage" data-mode="idle">
+        <button type="button" id="nextButton" class="next-btn">下一句</button>
+        <div class="interval-picker" id="intervalPicker" role="group" aria-label="自动播放间隔">
+          <span class="interval-thumb" aria-hidden="true"></span>
+          <button type="button" class="interval-option is-selected" data-interval="6000">6s</button>
+          <button type="button" class="interval-option" data-interval="15000">15s</button>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -1017,10 +1159,65 @@
       return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
 
+    const autoButton = document.getElementById("autoButton");
+    const actionStage = document.getElementById("actionStage");
+    const intervalPicker = document.getElementById("intervalPicker");
+    let autoTimer = null;
+    let autoInterval = 6000;
+
+    function startAutoplay() {
+      stopAutoTimer();
+      autoTimer = window.setInterval(() => renderQuote(), autoInterval);
+      actionStage.dataset.mode = "playing";
+      autoButton.classList.add("is-active");
+      autoButton.setAttribute("aria-pressed", "true");
+    }
+
+    function stopAutoplay() {
+      stopAutoTimer();
+      actionStage.dataset.mode = "idle";
+      autoButton.classList.remove("is-active");
+      autoButton.setAttribute("aria-pressed", "false");
+    }
+
+    function stopAutoTimer() {
+      if (autoTimer !== null) {
+        window.clearInterval(autoTimer);
+        autoTimer = null;
+      }
+    }
+
+    autoButton.addEventListener("click", () => {
+      if (actionStage.dataset.mode === "playing") {
+        stopAutoplay();
+      } else {
+        startAutoplay();
+      }
+    });
+
+    intervalPicker.dataset.active = String(autoInterval);
+    intervalPicker.addEventListener("click", (event) => {
+      const target = event.target.closest(".interval-option");
+      if (!target) return;
+      const next = Number(target.dataset.interval);
+      if (!next || next === autoInterval) return;
+      autoInterval = next;
+      intervalPicker.dataset.active = String(autoInterval);
+      intervalPicker.querySelectorAll(".interval-option").forEach((btn) => {
+        btn.classList.toggle("is-selected", btn === target);
+      });
+      if (autoTimer !== null) startAutoplay();
+    });
+
+    document.addEventListener("dblclick", () => {
+      if (actionStage.dataset.mode === "playing") stopAutoplay();
+    });
+
     nextButton.addEventListener("click", () => renderQuote());
     searchForm.addEventListener("submit", (event) => {
       event.preventDefault();
       handleSearch(searchInput.value);
+      if (actionStage.dataset.mode === "playing") stopAutoplay();
     });
     preheatOnlineBuffer();
     renderQuote(false);
