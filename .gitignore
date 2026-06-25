@@ -1,0 +1,11 @@
+# Local Claude Code 配置(含本机绝对路径)
+.claude/
+
+# Netlify CLI 本地构建产物 / 状态缓存
+.netlify/
+
+# OS / 编辑器
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

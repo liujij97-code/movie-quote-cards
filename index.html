@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电影金句卡片生成器</title>
+  <style>
+    :root {
+      --ink: #f5ead6;
+      --muted: rgba(245, 234, 214, 0.68);
+      --line: rgba(245, 234, 214, 0.18);
+      --red: #9f1d1d;
+      --gold: #c8a15d;
+      --shadow: rgba(0, 0, 0, 0.46);
+      --theme-rgb: 34, 76, 61;
+      --theme-deep-rgb: 8, 18, 15;
+      --card-rgb: 14, 20, 18;
+      --accent-rgb: 138, 190, 157;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      color: var(--ink);
+      position: relative;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(var(--theme-rgb), 0.42), transparent 30%),
+        radial-gradient(circle at 82% 78%, rgba(var(--accent-rgb), 0.18), transparent 32%),
+        linear-gradient(135deg, rgb(var(--theme-deep-rgb)) 0%, #100f10 46%, rgba(var(--theme-rgb), 0.88) 100%);
+      transition: background 420ms ease;
+      font-family: "Noto Serif SC", "Songti SC", "STSong", "Times New Roman", serif;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: radial-gradient(circle, black 35%, transparent 78%);
+      z-index: 1;
+    }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background: #080807;
+    }
+
+    .backdrop-layer {
+      position: absolute;
+      inset: -18%;
+      opacity: 0;
+      filter: blur(32px) brightness(0.82) saturate(1.35) hue-rotate(0deg);
+      transform: scale(1.06);
+      animation:
+        colorDrift 10s ease-in-out infinite alternate,
+        hueBreath 6.5s ease-in-out infinite alternate;
+      transition: opacity 420ms ease;
+      will-change: opacity, transform, filter;
+    }
+
+    .backdrop-layer.is-visible {
+      opacity: 1;
+    }
+
+    .stage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: min(92vw, 780px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+
+    .search-cluster {
+      width: min(520px, 92vw);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .search-row {
+      width: 100%;
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      padding: 4px;
+      border: 1px solid rgba(var(--accent-rgb), 0.32);
+      border-radius: 999px;
+      background: rgba(var(--card-rgb), 0.42);
+      backdrop-filter: blur(14px);
+      transition: border-color 220ms ease, box-shadow 220ms ease;
+    }
+
+    .search-row:focus-within {
+      border-color: rgb(var(--accent-rgb));
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18);
+    }
+
+    .search-row input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      border-radius: 999px 0 0 999px;
+      padding: 12px 18px;
+      color: var(--ink);
+      background: transparent;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      font: inherit;
+      outline: none;
+    }
+
+    .search-row input::placeholder {
+      color: rgba(245, 234, 214, 0.36);
+    }
+
+    .search-row button:focus-visible {
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18);
+    }
+
+    .search-row button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 22px;
+      letter-spacing: 0.22em;
+      white-space: nowrap;
+      background: rgba(var(--accent-rgb), 0.14);
+      opacity: 0.78;
+    }
+
+    .search-row button:hover {
+      transform: none;
+      background: rgba(var(--accent-rgb), 0.22);
+      opacity: 1;
+    }
+
+    .search-status {
+      width: min(520px, 92vw);
+      min-height: 16px;
+      margin: 0;
+      color: rgba(245, 234, 214, 0.48);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      height: clamp(430px, 56vh, 520px);
+      padding: clamp(34px, 7vw, 72px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid rgba(var(--accent-rgb), 0.34);
+      border-radius: 30px;
+      background:
+        linear-gradient(145deg, rgba(255, 248, 232, 0.1), rgba(255, 255, 255, 0.035)),
+        rgba(var(--card-rgb), 0.74);
+      box-shadow:
+        0 30px 90px var(--shadow),
+        0 0 84px rgba(var(--theme-rgb), 0.28),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(18px);
+      transition: background 420ms ease, border-color 420ms ease, box-shadow 420ms ease;
+    }
+
+    .content {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: opacity 420ms ease;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      width: 54px;
+      height: 54px;
+      border-top: 1px solid rgb(var(--accent-rgb));
+      border-left: 1px solid rgb(var(--accent-rgb));
+      transition: border-color 420ms ease;
+      opacity: 0.75;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      right: 22px;
+      bottom: 22px;
+      width: 54px;
+      height: 54px;
+      border-right: 1px solid rgb(var(--accent-rgb));
+      border-bottom: 1px solid rgb(var(--accent-rgb));
+      transition: border-color 420ms ease;
+      opacity: 0.75;
+    }
+
+    .quote-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
+
+    .quote {
+      width: 100%;
+      margin: 0;
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 500;
+      line-height: 1.55;
+      letter-spacing: 0.06em;
+      text-align: left;
+      text-wrap: wrap;
+      white-space: normal;
+      word-break: normal;
+      text-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .meta {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 22px;
+      color: var(--muted);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+
+    .film {
+      margin: 0;
+      color: var(--ink);
+      font-size: 15px;
+      letter-spacing: 0.16em;
+    }
+
+    .year {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+    }
+
+    .counter {
+      color: rgb(var(--accent-rgb));
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      white-space: nowrap;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+    }
+
+    button {
+      border: 1px solid rgba(var(--accent-rgb), 0.56);
+      border-radius: 999px;
+      padding: 14px 30px;
+      color: var(--ink);
+      background: rgba(var(--card-rgb), 0.38);
+      cursor: pointer;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.28em;
+      transition: transform 220ms ease, background 420ms ease, border-color 420ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      border-color: rgb(var(--accent-rgb));
+      background: rgba(var(--accent-rgb), 0.24);
+    }
+
+    button:focus-visible {
+      border-color: rgb(var(--accent-rgb));
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .fade-out {
+      opacity: 0;
+    }
+
+    @keyframes colorDrift {
+      0% {
+        transform: scale(1.06) translate3d(-4.2%, -2.8%, 0) rotate(-1.2deg);
+      }
+
+      45% {
+        transform: scale(1.13) translate3d(3.6%, -4.4%, 0) rotate(2.2deg);
+      }
+
+      100% {
+        transform: scale(1.09) translate3d(4.8%, 3.8%, 0) rotate(-2deg);
+      }
+    }
+
+    @keyframes hueBreath {
+      0% {
+        filter: blur(32px) brightness(0.78) saturate(1.25) hue-rotate(-14deg);
+      }
+
+      50% {
+        filter: blur(34px) brightness(0.9) saturate(1.58) hue-rotate(0deg);
+      }
+
+      100% {
+        filter: blur(32px) brightness(0.82) saturate(1.42) hue-rotate(18deg);
+      }
+    }
+
+    .signature {
+      position: fixed;
+      right: 30px;
+      bottom: 24px;
+      color: rgba(245, 234, 214, 0.34);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      font-size: 11px;
+      writing-mode: vertical-rl;
+      z-index: 2;
+    }
+
+    @media (max-width: 560px) {
+      body {
+        overflow: auto;
+      }
+
+      .stage {
+        width: min(90vw, 780px);
+        gap: 18px;
+      }
+
+      .card {
+        height: min(58vh, 430px);
+        border-radius: 24px;
+      }
+
+      .meta {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .signature {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true">
+    <div class="backdrop-layer is-visible"></div>
+    <div class="backdrop-layer"></div>
+  </div>
+
+  <main class="stage">
+    <div class="search-cluster">
+      <form class="search-row" id="searchForm" autocomplete="off" aria-label="电影台词搜索">
+        <input
+          type="search"
+          id="searchInput"
+          name="movie"
+          placeholder="输入电影名，例如：花样年华"
+          aria-label="电影名"
+          maxlength="60">
+        <button type="submit" id="searchButton">搜索</button>
+      </form>
+      <p class="search-status" id="searchStatus" role="status" aria-live="polite"></p>
+    </div>
+
+    <section class="card" id="card" aria-live="polite">
+      <div class="content" id="content">
+        <div class="quote-panel">
+          <h1 class="quote" id="quote"></h1>
+        </div>
+
+        <footer class="meta">
+          <div>
+            <p class="film" id="film"></p>
+            <p class="year" id="year"></p>
+          </div>
+          <span class="counter" id="counter"></span>
+        </footer>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="nextButton">下一句</button>
+    </div>
+  </main>
+
+  <div class="signature">一帧一句</div>
+
+  <script>
+    const defaultProofread = {
+      label: "待校对",
+      detail: "台词、译文与出处需逐条核验"
+    };
+
+    const rawQuotes = [
+      { text: "如果多一张船票，你会不会跟我一起走？", film: "花样年华", year: "2000", themeColor: "#5f1b1f" },
+      { text: "黎耀辉，不如我们从头来过。", film: "春光乍泄", year: "1997", themeColor: "#163f3a" },
+      { text: "不知道从什么时候开始，在什么东西上面都有个日期。", film: "重庆森林", year: "1994", themeColor: "#123f32" },
+      { text: "念念不忘，必有回响。", film: "一代宗师", year: "2013", themeColor: "#4a2d16" },
+      { text: "人生如戏，戏如人生。", film: "霸王别姬", year: "1993", themeColor: "#5b121b" },
+      { text: "做人如果没有梦想，那跟咸鱼有什么分别？", film: "少林足球", year: "2001", themeColor: "#273b1d" },
+      { text: "曾经有一份真诚的爱情放在我面前，我没有珍惜。", film: "大话西游之大圣娶亲", year: "1995", themeColor: "#4d2a55" },
+      { text: "要努力，要不负此生。", film: "千与千寻", year: "2001", themeColor: "#234335" },
+      { text: "世界上有那么多城镇，城镇中有那么多酒馆，她却偏偏走进了我的。", film: "卡萨布兰卡", year: "1942", themeColor: "#3b3428" },
+      { text: "明天又是新的一天。", film: "乱世佳人", year: "1939", themeColor: "#5a2418" },
+      { text: "愿原力与你同在。", film: "星球大战", year: "1977", themeColor: "#18233f" },
+      { text: "生活就像一盒巧克力，你永远不知道下一颗是什么味道。", film: "阿甘正传", year: "1994", themeColor: "#253a4c" },
+      { text: "希望是美好的，也许是人间至善，而美好的事物永不消逝。", film: "肖申克的救赎", year: "1994", themeColor: "#20344a" },
+      { text: "我会回来的。", film: "终结者", year: "1984", themeColor: "#3c1416" },
+      { text: "去活出你的人生。", film: "死亡诗社", year: "1989", themeColor: "#4a2f1d" },
+      { text: "你不能因为害怕失去，就拒绝拥有。", film: "心灵捕手", year: "1997", themeColor: "#2a3d52" },
+      { text: "我们一路奋战，不是为了改变世界，而是为了不让世界改变我们。", film: "熔炉", year: "2011", themeColor: "#20272f" },
+      { text: "有些鸟儿是关不住的，因为它们的每一片羽毛都闪耀着自由的光辉。", film: "肖申克的救赎", year: "1994", themeColor: "#20344a" },
+      { text: "每一次相遇，都是久别重逢。", film: "一代宗师", year: "2013", themeColor: "#4a2d16" },
+      { text: "这世上只有一种成功，就是用自己喜欢的方式过一生。", film: "头文字D", year: "2005", themeColor: "#1c2b38" },
+      { text: "要么忙着活，要么忙着死。", film: "肖申克的救赎", director: "弗兰克·德拉邦特", year: "1994", themeColor: "#20344a" },
+      { text: "说好了一辈子，差一年、一个月、一天、一个时辰，都不算一辈子。", film: "霸王别姬", director: "陈凯歌", year: "1993", themeColor: "#5b121b" },
+      { text: "奇迹每天都在发生。", film: "阿甘正传", director: "罗伯特·泽米吉斯", year: "1994", themeColor: "#253a4c" },
+      { text: "赢得船票，是我一生中最幸运的事。", film: "泰坦尼克号", director: "詹姆斯·卡梅隆", year: "1997", themeColor: "#233c56" },
+      { text: "不要吃太胖哦，会被杀掉的。", film: "千与千寻", director: "宫崎骏", year: "2001", themeColor: "#234335" },
+      { text: "人生总是这么痛苦吗？还是只有小时候是这样？", film: "这个杀手不太冷", director: "吕克·贝松", year: "1994", themeColor: "#273322" },
+      { text: "早安，我的公主。", film: "美丽人生", director: "罗伯托·贝尼尼", year: "1997", themeColor: "#5a3320" },
+      { text: "爱是唯一可以超越时间与空间的事物。", film: "星际穿越", director: "克里斯托弗·诺兰", year: "2014", themeColor: "#101e3a" },
+      { text: "最有韧性的寄生虫是什么？是想法。", film: "盗梦空间", director: "克里斯托弗·诺兰", year: "2010", themeColor: "#172d37" },
+      { text: "假如再也见不到你，祝你早安、午安、晚安。", film: "楚门的世界", director: "彼得·威尔", year: "1998", themeColor: "#244d5c" },
+      { text: "我不想只是生存，我想生活。", film: "机器人总动员", director: "安德鲁·斯坦顿", year: "2008", themeColor: "#5b431f" },
+      { text: "阻止我的脚步的，并不是我所看见的东西，而是我所无法看见的东西。", film: "海上钢琴师", director: "朱塞佩·托纳多雷", year: "1998", themeColor: "#283e4d" },
+      { text: "追求卓越，成功就会在不经意间追上你。", film: "三傻大闹宝莱坞", director: "拉吉库马尔·希拉尼", year: "2009", themeColor: "#5a3d18" },
+      { text: "永远不要忘记你爱的人。", film: "忠犬八公的故事", director: "莱塞·霍尔斯道姆", year: "2009", themeColor: "#4a3523" },
+      { text: "永远不要说永远，凡事皆有可能。", film: "放牛班的春天", director: "克里斯托夫·巴拉蒂", year: "2004", themeColor: "#503b1d" },
+      { text: "有一天你会遇到一个彩虹般绚丽的人，从此以后，其他人不过是匆匆浮云。", film: "怦然心动", director: "罗伯·莱纳", year: "2010", themeColor: "#395026" },
+      { text: "生活总会有点不顺意，我们都会犯错。", film: "疯狂动物城", director: "拜伦·霍华德 / 瑞奇·摩尔", year: "2016", themeColor: "#2f365d" },
+      { text: "真正的死亡，是世界上再没有一个人记得你。", film: "寻梦环游记", director: "李·昂克里奇 / 阿德里安·莫利纳", year: "2017", themeColor: "#4d1e55" },
+      { text: "我会给他一个无法拒绝的条件。", film: "教父", director: "弗朗西斯·福特·科波拉", year: "1972", themeColor: "#2b1512" },
+      { text: "探戈里无所谓错步，不像人生。", film: "闻香识女人", director: "马丁·布莱斯特", year: "1992", themeColor: "#3b2a1d" },
+      { text: "如果你有梦想，就要守护它。", film: "当幸福来敲门", director: "加布里埃莱·穆奇诺", year: "2006", themeColor: "#1d3b55" },
+      { text: "这不是你的错。", film: "心灵捕手", director: "格斯·范·桑特", year: "1997", themeColor: "#2a3d52" },
+      { text: "及时行乐，孩子们，让你们的人生不同凡响。", film: "死亡诗社", director: "彼得·威尔", year: "1989", themeColor: "#4a2f1d" },
+      { text: "暴力永远不能取胜，保持尊严才会占上风。", film: "绿皮书", director: "彼得·法雷里", year: "2018", themeColor: "#274427" },
+      { text: "我的意中人是个盖世英雄，有一天他会踩着七色云彩来娶我。", film: "大话西游之大圣娶亲", director: "刘镇伟", year: "1995", themeColor: "#4d2a55" },
+      { text: "我不能替你背负它，但我可以背负你。", film: "指环王3：王者无敌", director: "彼得·杰克逊", year: "2003", themeColor: "#1f3a27" },
+      { text: "这枚戒指，本可以多救一个人。", film: "辛德勒的名单", director: "史蒂文·斯皮尔伯格", year: "1993", themeColor: "#2c2c2b" },
+      { text: "偏见总是蒙蔽真相。", film: "十二怒汉", director: "西德尼·吕美特", year: "1957", themeColor: "#2b2b2b" },
+      { text: "人生不能像做菜，把所有的料都准备好了才下锅。", film: "饮食男女", director: "李安", year: "1994", themeColor: "#5b2f1a" },
+      { text: "其实我是一个演员。", film: "喜剧之王", director: "周星驰 / 李力持", year: "1999", themeColor: "#4f2739" },
+      { text: "出来混，迟早要还的。", film: "无间道", director: "刘伟强 / 麦兆辉", year: "2002", themeColor: "#172438" },
+      { text: "让子弹飞一会儿。", film: "让子弹飞", director: "姜文", year: "2010", themeColor: "#5a2d16" },
+      { text: "罗马，当然是罗马。", film: "罗马假日", director: "威廉·惠勒", year: "1953", themeColor: "#3e3a50" },
+      { text: "根要扎在土壤里，和风一起生存。", film: "天空之城", director: "宫崎骏", year: "1986", themeColor: "#1e4053" },
+      { text: "谢谢你带给我的冒险，现在去开始新的吧。", film: "飞屋环游记", director: "彼特·道格特", year: "2009", themeColor: "#334c63" },
+      { text: "世界上只有一种病，穷病。", film: "我不是药神", director: "文牧野", year: "2018", themeColor: "#3a4424" },
+      { text: "至少我试过了。", film: "飞越疯人院", director: "米洛斯·福尔曼", year: "1975", themeColor: "#303b2e" },
+      { text: "你拥有的东西最终会拥有你。", film: "搏击俱乐部", director: "大卫·芬奇", year: "1999", themeColor: "#32151a" },
+      { text: "我猜人生就是不断地放下，可惜的是，我们没有好好告别。", film: "少年派的奇幻漂流", director: "李安", year: "2012", themeColor: "#1d405c" },
+      { text: "如果你不出去走走，你就会以为这就是世界。", film: "天堂电影院", director: "朱塞佩·托纳多雷", year: "1988", themeColor: "#4c321c" },
+      { text: "我只能告诉你门在哪里，你必须自己走过去。", film: "黑客帝国", director: "莉莉·沃卓斯基 / 拉娜·沃卓斯基", year: "1999", themeColor: "#123b2b" },
+      { text: "过去是痛楚的，但我认为你可以逃避，也可以向它学习。", film: "狮子王", director: "罗杰·阿勒斯 / 罗伯·明可夫", year: "1994", themeColor: "#5a3514" },
+      { text: "人民不应该害怕政府，政府应该害怕人民。", film: "V字仇杀队", director: "詹姆斯·麦克特格", year: "2005", themeColor: "#2f1625" },
+      { text: "要么作为英雄死去，要么活得够久，亲眼看着自己变成恶人。", film: "蝙蝠侠：黑暗骑士", director: "克里斯托弗·诺兰", year: "2008", themeColor: "#111c2a" },
+      { text: "不要怜悯死者，哈利，怜悯活人。", film: "哈利·波特与死亡圣器(下)", director: "大卫·叶茨", year: "2011", themeColor: "#2b2044" },
+      { text: "有时候，正是那些无人看好的人，成就了无人能及的事。", film: "模仿游戏", director: "莫滕·泰杜姆", year: "2014", themeColor: "#223646" },
+      { text: "最好的计划就是没有计划。", film: "寄生虫", director: "奉俊昊", year: "2019", themeColor: "#203a2f" },
+      { text: "我要起诉我的父母，因为他们生下了我。", film: "何以为家", director: "娜丁·拉巴基", year: "2018", themeColor: "#4a2f22" },
+      { text: "在幻变的生命里，岁月，原是最大的小偷。", film: "岁月神偷", director: "罗启锐", year: "2010", themeColor: "#46321f" },
+      { text: "还有谁？", film: "功夫", director: "周星驰", year: "2004", themeColor: "#3f1e17" },
+      { text: "童年最珍贵的，是相信奇迹会来到身边。", film: "龙猫", director: "宫崎骏", year: "1988", themeColor: "#2c4a35" },
+      { text: "让你的心，去带你想去的地方。", film: "哈尔的移动城堡", director: "宫崎骏", year: "2004", themeColor: "#234d5b" },
+      { text: "起风了，唯有努力生存。", film: "起风了", director: "宫崎骏", year: "2013", themeColor: "#314a5b" },
+      { text: "再美好的童年，也敌不过一场战争。", film: "萤火虫之墓", director: "高畑勋", year: "1988", themeColor: "#2a2622" },
+      { text: "死亡，可能只是一扇通往下一程的门。", film: "入殓师", director: "泷田洋二郎", year: "2008", themeColor: "#2a2e3a" },
+      { text: "你好吗？我很好。", film: "情书", director: "岩井俊二", year: "1995", themeColor: "#20354a" },
+      { text: "无论你在世界的哪个角落，我都会再去寻找你。", film: "你的名字", director: "新海诚", year: "2016", themeColor: "#1d3651" },
+      { text: "我以为是终点，却原来是开始。", film: "爱在黎明破晓前", director: "理查德·林克莱特", year: "1995", themeColor: "#3e2e54" },
+      { text: "记住，你也只是一个普通人。", film: "末代皇帝", director: "贝纳尔多·贝托鲁奇", year: "1987", themeColor: "#4a2316" },
+      { text: "他从不怜悯我，所以我愿意跟着他。", film: "触不可及", director: "奥利维埃·纳卡什 / 艾力克·托兰达", year: "2011", themeColor: "#2d3924" },
+      { text: "幸福，藏在生活的细枝末节里。", film: "天使爱美丽", director: "让-皮埃尔·热内", year: "2001", themeColor: "#5b2a30" },
+      { text: "这个世界很美好，值得为之奋斗。", film: "七宗罪", director: "大卫·芬奇", year: "1995", themeColor: "#1f1c1f" },
+      { text: "你想看见秘密，其实是想被骗。", film: "致命魔术", director: "克里斯托弗·诺兰", year: "2006", themeColor: "#1a1d2a" },
+      { text: "我看见你。", film: "阿凡达", director: "詹姆斯·卡梅隆", year: "2009", themeColor: "#14304a" },
+      { text: "我把一生最美好的时光，都用来怀念你。", film: "美国往事", director: "赛尔乔·莱昂内", year: "1984", themeColor: "#3b271a" },
+      { text: "时间带走了一切，却带不走那时你的样子。", film: "西西里的美丽传说", director: "朱塞佩·托纳多雷", year: "2000", themeColor: "#4d2a1c" },
+      { text: "如果你愿意相信，世界就会变得明亮。", film: "海蒂和爷爷", director: "阿兰·葛斯彭纳", year: "2015", themeColor: "#3a4b1f" },
+      { text: "在我所有的方程里，最神奇的一行写着：你。", film: "美丽心灵", director: "朗·霍华德", year: "2001", themeColor: "#233248" },
+      { text: "世上最危险的两个字，是'还行'。", film: "爆裂鼓手", director: "达米恩·查泽雷", year: "2014", themeColor: "#2a1417" },
+      { text: "敬那些做梦的人，敬那些会犯傻的心。", film: "爱乐之城", director: "达米恩·查泽雷", year: "2016", themeColor: "#2c1f4a" },
+      { text: "金牌属于敢相信自己的人。", film: "摔跤吧！爸爸", director: "涅提·蒂瓦里", year: "2016", themeColor: "#4a2a16" },
+      { text: "末日来临时，最难守住的是人性。", film: "釜山行", director: "延尚昊", year: "2016", themeColor: "#1c1f24" },
+      { text: "每个人手机里，都藏着一个陌生的自己。", film: "完美陌生人", director: "保罗·杰诺维塞", year: "2016", themeColor: "#2c2333" },
+      { text: "握紧拳头，里面什么也没有。", film: "卧虎藏龙", director: "李安", year: "2000", themeColor: "#1f3a2a" },
+      { text: "人是为活着本身而活着。", film: "活着", director: "张艺谋", year: "1994", themeColor: "#4a2a1c" },
+      { text: "我们那时没有爱情，只有发疯一样的喜欢。", film: "阳光灿烂的日子", director: "姜文", year: "1994", themeColor: "#5b3a1c" },
+      { text: "胜的是村子，不是我们。", film: "七武士", director: "黑泽明", year: "1954", themeColor: "#2c2820" },
+      { text: "每个人讲述的真相，都是为了自己。", film: "罗生门", director: "黑泽明", year: "1950", themeColor: "#2a2418" },
+      { text: "我命由我不由天。", film: "哪吒之魔童降世", director: "饺子", year: "2019", themeColor: "#4d1c20" },
+      { text: "希望是我们这个时代像钻石一样珍贵的东西。", film: "流浪地球", director: "郭帆", year: "2019", themeColor: "#1d2a3a" },
+      { text: "万物皆有灵，心怀慈悲。", film: "大鱼海棠", director: "梁旋 / 张春", year: "2016", themeColor: "#1a3a4d" },
+      { text: "美好的事物，能在平凡的日子里一直发光。", film: "海街日记", director: "是枝裕和", year: "2015", themeColor: "#2c4a3a" },
+      { text: "我喜欢的，是一直追着他的自己。", film: "千年女优", director: "今敏", year: "2001", themeColor: "#4a1c2c" },
+      { text: "有些人只听从自己心里的声音。", film: "燃情岁月", director: "爱德华·兹威克", year: "1994", themeColor: "#4d2614" },
+      { text: "音乐让灵魂在黑暗中依然挺立。", film: "钢琴家", director: "罗曼·波兰斯基", year: "2002", themeColor: "#2a2620" }
+    ];
+
+    const quotes = rawQuotes.map((item) => ({
+      proofread: defaultProofread,
+      ...item
+    }));
+
+    const content = document.getElementById("content");
+    const quote = document.getElementById("quote");
+    const film = document.getElementById("film");
+    const year = document.getElementById("year");
+    const counter = document.getElementById("counter");
+    const nextButton = document.getElementById("nextButton");
+    const searchForm = document.getElementById("searchForm");
+    const searchInput = document.getElementById("searchInput");
+    const searchButton = document.getElementById("searchButton");
+    const searchStatus = document.getElementById("searchStatus");
+    const root = document.documentElement;
+    const backdropLayers = Array.from(document.querySelectorAll(".backdrop-layer"));
+    let currentIndex = -1;
+    let activeBackdrop = 0;
+    let quoteQueue = [];
+
+    function pickQuote() {
+      if (quoteQueue.length === 0) {
+        quoteQueue = buildShuffledQueue(currentIndex);
+      }
+
+      currentIndex = quoteQueue.shift();
+      return quotes[currentIndex];
+    }
+
+    function buildShuffledQueue(previousIndex) {
+      const queue = quotes.map((_, index) => index);
+
+      for (let index = queue.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [queue[index], queue[swapIndex]] = [queue[swapIndex], queue[index]];
+      }
+
+      if (queue.length > 1 && queue[0] === previousIndex) {
+        [queue[0], queue[1]] = [queue[1], queue[0]];
+      }
+
+      return queue;
+    }
+
+    function updateText(item) {
+      quote.textContent = `“${item.text}”`;
+      film.textContent = item.film;
+      year.textContent = [item.director, item.year].filter(Boolean).join(" / ");
+      counter.textContent = `${String(currentIndex + 1).padStart(2, "0")} / ${quotes.length}`;
+    }
+
+    function renderQuote(animate = true) {
+      const item = pickQuote();
+      applyTheme(item);
+
+      if (!animate) {
+        updateText(item);
+        return;
+      }
+
+      content.classList.add("fade-out");
+      window.setTimeout(() => {
+        updateText(item);
+        content.classList.remove("fade-out");
+      }, 240);
+    }
+
+    function applyTheme(item) {
+      const theme = hexToRgb(item.themeColor);
+      const deep = theme.map((value) => clamp(Math.round(value * 0.24), 6, 42));
+      const card = theme.map((value) => clamp(Math.round(value * 0.36), 12, 74));
+      const accent = theme.map((value) => clamp(Math.round(value * 1.36 + 42), 112, 238));
+      const nextBackdrop = activeBackdrop === 0 ? 1 : 0;
+
+      root.style.setProperty("--theme-rgb", theme.join(", "));
+      root.style.setProperty("--theme-deep-rgb", deep.join(", "));
+      root.style.setProperty("--card-rgb", card.join(", "));
+      root.style.setProperty("--accent-rgb", accent.join(", "));
+      backdropLayers[nextBackdrop].style.background = buildThemeGradient(theme, deep, accent);
+
+      backdropLayers[nextBackdrop].classList.add("is-visible");
+      backdropLayers[activeBackdrop].classList.remove("is-visible");
+      activeBackdrop = nextBackdrop;
+    }
+
+    function buildThemeGradient(theme, deep, accent) {
+      return `
+        radial-gradient(circle at 22% 18%, rgba(${theme.join(", ")}, 0.62), transparent 32%),
+        radial-gradient(circle at 78% 72%, rgba(${accent.join(", ")}, 0.26), transparent 36%),
+        radial-gradient(circle at 48% 48%, rgba(${theme.join(", ")}, 0.22), transparent 44%),
+        linear-gradient(135deg, rgb(${deep.join(", ")}) 0%, #0b0909 54%, rgba(${theme.join(", ")}, 0.86) 100%)
+      `;
+    }
+
+    function hexToRgb(hex) {
+      const normalized = hex.replace("#", "");
+      const value = Number.parseInt(normalized, 16);
+      return [value >> 16 & 255, value >> 8 & 255, value & 255];
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    const HITOKOTO_BUNDLE_URL = "https://cdn.jsdelivr.net/gh/hitokoto-osc/sentences-bundle@latest/sentences/h.json";
+    const HITOKOTO_FALLBACK_URL = "https://v1.hitokoto.cn/?c=h&encode=json";
+
+    let bundleCache = null;
+    let bundlePromise = null;
+
+    function setSearchBusy(busy) {
+      searchButton.disabled = busy;
+      searchInput.disabled = busy;
+      searchButton.textContent = busy ? "搜索中" : "搜索";
+    }
+
+    function setSearchStatus(text) {
+      searchStatus.textContent = text || "";
+    }
+
+    function findLocalQuote(query) {
+      const normalized = query.replace(/\s+/g, "").toLowerCase();
+      if (!normalized) return null;
+
+      const matches = quotes.filter((item) => {
+        const film = (item.film || "").replace(/\s+/g, "").toLowerCase();
+        return film.includes(normalized) || normalized.includes(film);
+      });
+
+      if (matches.length === 0) return null;
+      const pickIndex = Math.floor(Math.random() * matches.length);
+      return matches[pickIndex];
+    }
+
+    async function loadHitokotoBundle() {
+      if (bundleCache) return bundleCache;
+      if (bundlePromise) return bundlePromise;
+
+      bundlePromise = fetch(HITOKOTO_BUNDLE_URL, { cache: "force-cache" })
+        .then((response) => {
+          if (!response.ok) throw new Error("台词库下载失败 " + response.status);
+          return response.json();
+        })
+        .then((data) => {
+          if (!Array.isArray(data)) throw new Error("台词库格式异常");
+          bundleCache = data;
+          return data;
+        })
+        .catch((error) => {
+          bundlePromise = null;
+          throw error;
+        });
+
+      return bundlePromise;
+    }
+
+    function pickFromBundle(bundle, query) {
+      const normalized = query.replace(/\s+/g, "").toLowerCase();
+      if (!normalized) return null;
+
+      const matches = bundle.filter((item) => {
+        const from = (item.from || "").replace(/\s+/g, "").toLowerCase();
+        return from && (from.includes(normalized) || normalized.includes(from));
+      });
+
+      if (matches.length === 0) return null;
+      const chosen = matches[Math.floor(Math.random() * matches.length)];
+      const film = (chosen.from || query).trim();
+      const director = (chosen.from_who || "").trim();
+
+      return {
+        text: chosen.hitokoto,
+        film,
+        director: director || undefined,
+        year: "",
+        themeColor: computeMoodColor(chosen.hitokoto, film, director)
+      };
+    }
+
+    async function fetchOnlineQuote(query) {
+      const response = await fetch(HITOKOTO_FALLBACK_URL, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("接口返回 " + response.status);
+      }
+      const data = await response.json();
+      if (!data || !data.hitokoto) {
+        throw new Error("接口数据异常");
+      }
+
+      const film = (data.from || query || "未知影片").trim();
+      const director = (data.from_who || "").trim();
+      const themeColor = computeMoodColor(data.hitokoto, film, director);
+
+      return {
+        text: data.hitokoto,
+        film,
+        director: director || undefined,
+        year: "",
+        themeColor
+      };
+    }
+
+    async function handleSearch(rawQuery) {
+      const query = (rawQuery || "").trim();
+      if (!query) {
+        setSearchStatus("请输入电影名");
+        return;
+      }
+
+      const local = findLocalQuote(query);
+      if (local) {
+        currentIndex = quotes.indexOf(local);
+        quoteQueue = [];
+        renderQuoteFromItem(local);
+        setSearchStatus(`已为你找到《${local.film}》的金句`);
+        return;
+      }
+
+      setSearchBusy(true);
+      setSearchStatus("正在联网搜索台词…");
+      try {
+        const bundle = await loadHitokotoBundle();
+        const matched = pickFromBundle(bundle, query);
+        if (matched) {
+          quoteQueue = [];
+          currentIndex = -1;
+          renderQuoteFromItem(matched);
+          setSearchStatus(`已为你联网找到《${matched.film}》的台词`);
+          return;
+        }
+
+        const online = await fetchOnlineQuote(query);
+        quoteQueue = [];
+        currentIndex = -1;
+        renderQuoteFromItem(online);
+        setSearchStatus(
+          online.film && online.film !== query
+            ? `没有匹配《${query}》，已为你随机抽取《${online.film}》的影视金句`
+            : "没有匹配的电影，已为你随机抽取一条影视金句"
+        );
+      } catch (error) {
+        setSearchStatus("没能联网获取台词：" + error.message);
+      } finally {
+        setSearchBusy(false);
+      }
+    }
+
+    function renderQuoteFromItem(item) {
+      content.classList.add("fade-out");
+      window.setTimeout(() => {
+        applyTheme(item);
+        updateText(item);
+        content.classList.remove("fade-out");
+      }, 240);
+    }
+
+    function computeMoodColor(text, film, director) {
+      const seed = `${film || ""}|${director || ""}|${text || ""}`;
+      const hash = hashString(seed);
+
+      const moodScore = scoreMood(text + " " + (film || ""));
+      const hueAnchor = pickHueAnchor(moodScore, hash);
+      const saturation = clamp(0.32 + ((hash >>> 8) & 0xff) / 255 * 0.22, 0.32, 0.58);
+      const lightness = clamp(0.18 + ((hash >>> 16) & 0xff) / 255 * 0.12, 0.16, 0.32);
+
+      const [r, g, b] = hslToRgb(hueAnchor / 360, saturation, lightness);
+      return rgbToHex(r, g, b);
+    }
+
+    function hashString(input) {
+      let hash = 0x811c9dc5;
+      for (let index = 0; index < input.length; index += 1) {
+        hash ^= input.charCodeAt(index);
+        hash = Math.imul(hash, 0x01000193);
+      }
+      return hash >>> 0;
+    }
+
+    function scoreMood(input) {
+      const dictionaries = [
+        { hue: 350, terms: ["爱", "心动", "吻", "拥抱", "温柔", "love", "kiss"] },
+        { hue: 210, terms: ["孤", "雨", "夜", "海", "冷", "雪", "lonely", "rain", "sea"] },
+        { hue: 28,  terms: ["梦", "光", "希望", "暖", "黎明", "晨", "hope", "dream"] },
+        { hue: 130, terms: ["森林", "草", "风", "树", "山", "自然", "wind", "forest"] },
+        { hue: 0,   terms: ["战", "杀", "怒", "枪", "血", "war", "kill"] },
+        { hue: 280, terms: ["神秘", "魔", "幻", "影", "暗", "magic", "shadow"] },
+        { hue: 50,  terms: ["金", "辉煌", "荣耀", "胜利", "gold", "glory"] },
+        { hue: 195, terms: ["未来", "宇宙", "星", "飞", "space", "future"] }
+      ];
+
+      const text = (input || "").toLowerCase();
+      let bestHue = 210;
+      let bestScore = -1;
+
+      for (const entry of dictionaries) {
+        let score = 0;
+        for (const term of entry.terms) {
+          if (text.includes(term)) score += 1;
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          bestHue = entry.hue;
+        }
+      }
+      return bestHue;
+    }
+
+    function pickHueAnchor(baseHue, hash) {
+      const drift = ((hash & 0xff) / 255 - 0.5) * 28;
+      const hue = (baseHue + drift + 360) % 360;
+      return hue;
+    }
+
+    function hslToRgb(h, s, l) {
+      if (s === 0) {
+        const value = Math.round(l * 255);
+        return [value, value, value];
+      }
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      const toChannel = (t) => {
+        let temp = t;
+        if (temp < 0) temp += 1;
+        if (temp > 1) temp -= 1;
+        if (temp < 1 / 6) return p + (q - p) * 6 * temp;
+        if (temp < 1 / 2) return q;
+        if (temp < 2 / 3) return p + (q - p) * (2 / 3 - temp) * 6;
+        return p;
+      };
+      return [
+        Math.round(toChannel(h + 1 / 3) * 255),
+        Math.round(toChannel(h) * 255),
+        Math.round(toChannel(h - 1 / 3) * 255)
+      ];
+    }
+
+    function rgbToHex(r, g, b) {
+      const toHex = (value) => clamp(value, 0, 255).toString(16).padStart(2, "0");
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    nextButton.addEventListener("click", () => renderQuote());
+    searchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      handleSearch(searchInput.value);
+    });
+    renderQuote(false);
+  </script>
+</body>
+</html>
