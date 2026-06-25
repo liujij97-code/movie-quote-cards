@@ -318,22 +318,20 @@
       min-height: 1em;
     }
 
-    .source-dot {
+    .source-meter {
       position: absolute;
       right: clamp(22px, 4.6vw, 46px);
-      bottom: calc(clamp(34px, 7vw, 72px) + 27px);
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgb(var(--accent-rgb));
-      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18);
-      transition: background 320ms ease, box-shadow 320ms ease;
+      bottom: calc(clamp(34px, 7vw, 72px) + 22px);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      font-variant-numeric: tabular-nums;
+      transition: color 320ms ease;
       z-index: 1;
     }
 
-    .source-dot[data-source="online"] {
-      background: var(--gold);
-      box-shadow: 0 0 0 3px rgba(200, 161, 93, 0.22);
+    .source-meter[data-source="online"] {
+      color: var(--gold);
     }
 
     .actions {
@@ -600,7 +598,7 @@
           </div>
         </footer>
       </div>
-      <span class="source-dot" id="sourceDot" data-source="local" aria-label="台词来源" title="本地"></span>
+      <span class="source-meter" id="sourceMeter" data-source="local" aria-label="台词位置"></span>
     </section>
 
     <div class="actions">
@@ -731,7 +729,192 @@
       { text: "美好的事物，能在平凡的日子里一直发光。", film: "海街日记", director: "是枝裕和", year: "2015", themeColor: "#2c4a3a" },
       { text: "我喜欢的，是一直追着他的自己。", film: "千年女优", director: "今敏", year: "2001", themeColor: "#4a1c2c" },
       { text: "有些人只听从自己心里的声音。", film: "燃情岁月", director: "爱德华·兹威克", year: "1994", themeColor: "#4d2614" },
-      { text: "音乐让灵魂在黑暗中依然挺立。", film: "钢琴家", director: "罗曼·波兰斯基", year: "2002", themeColor: "#2a2620" }
+      { text: "音乐让灵魂在黑暗中依然挺立。", film: "钢琴家", director: "罗曼·波兰斯基", year: "2002", themeColor: "#2a2620" },
+      /* __INSERT_BATCH_1__ */
+      { text: "永远不要相信你看见的所有表象。", film: "控方证人", director: "比利·怀尔德", year: "1957", themeColor: "#2a2418" },
+      { text: "决定我们成为什么样的人，不是我们的能力，而是我们的选择。", film: "哈利·波特与魔法石", director: "克里斯·哥伦布", year: "2001", themeColor: "#2b2044" },
+      { text: "爸爸要去的地方，素媛就跟着去。", film: "素媛", director: "李濬益", year: "2013", themeColor: "#3a2a2a" },
+      { text: "有时候，说谎比说真话还累。", film: "猫鼠游戏", director: "史蒂文·斯皮尔伯格", year: "2002", themeColor: "#1d324a" },
+      { text: "大哥大嫂过年好，你是我的爷我是你的儿。", film: "鬼子来了", director: "姜文", year: "2000", themeColor: "#4a2419" },
+      { text: "般若波罗蜜。", film: "大话西游之月光宝盒", director: "刘镇伟", year: "1995", themeColor: "#4d2a55" },
+      { text: "天还没破晓，但黑夜已被划开。", film: "指环王2：双塔奇兵", director: "彼得·杰克逊", year: "2002", themeColor: "#1f3a27" },
+      { text: "皇帝轮流做，明年到我家。", film: "大闹天宫", director: "万籁鸣", year: "1961", themeColor: "#5a2418" },
+      { text: "我们要决定的，是如何使用上天给的时间。", film: "指环王1：护戒使者", director: "彼得·杰克逊", year: "2001", themeColor: "#1f3a27" },
+      { text: "永远不要让家族之外的人知道你在想什么。", film: "教父2", director: "弗朗西斯·福特·科波拉", year: "1974", themeColor: "#2b1512" },
+      { text: "国家应当属于人民，不该高于人民。", film: "辩护人", director: "杨宇硕", year: "2013", themeColor: "#2a2c2e" },
+      { text: "做你想做的人，没有时间的限制。", film: "本杰明·巴顿奇事", director: "大卫·芬奇", year: "2008", themeColor: "#2c2820" },
+      { text: "童年最贵的礼物，是没有围栏的友情。", film: "穿条纹睡衣的男孩", director: "马克·赫尔曼", year: "2008", themeColor: "#2c2c2b" },
+      { text: "献给好人的奏鸣曲。", film: "窃听风暴", director: "弗洛里安·亨克尔·冯·多纳斯马克", year: "2006", themeColor: "#1a2438" },
+      { text: "总有一些事情比金钱更重要，但都需要花钱。", film: "两杆大烟枪", director: "盖·里奇", year: "1998", themeColor: "#2f2a18" },
+      { text: "上帝关上一扇门，必会为你打开另一扇窗。", film: "音乐之声", director: "罗伯特·怀斯", year: "1965", themeColor: "#3a4b1f" },
+      { text: "魔鬼，都藏在细节里。", film: "看不见的客人", director: "奥里奥尔·保罗", year: "2016", themeColor: "#20272f" },
+      { text: "好好活下去。", film: "拯救大兵瑞恩", director: "史蒂文·斯皮尔伯格", year: "1998", themeColor: "#2c2c2b" },
+      { text: "等我长大，我就给妹妹买一双新鞋。", film: "小鞋子", director: "马吉德·马吉迪", year: "1997", themeColor: "#3b2a1d" },
+      { text: "你为什么不告诉我那只是计谋？", film: "沉默的羔羊", director: "乔纳森·戈姆", year: "1991", themeColor: "#2a2418" },
+      { text: "我们都被困在自己想象的酒店里。", film: "布达佩斯大饭店", director: "韦斯·安德森", year: "2014", themeColor: "#5a3320" },
+      { text: "你最深的恐惧，正是你逃避的真相。", film: "禁闭岛", director: "马丁·斯科塞斯", year: "2010", themeColor: "#1f242c" },
+      { text: "你永远不知道自己改变了什么，又错过了什么。", film: "蝴蝶效应", director: "埃里克·布雷斯", year: "2004", themeColor: "#1d2436" },
+      { text: "你愿意看，是因为我给你看的，比真相更迷人。", film: "致命魔术", director: "克里斯托弗·诺兰", year: "2006", themeColor: "#1f1f24" },
+      { text: "时间会带走一切，除了一个孩子的勇气。", film: "哈利·波特与阿兹卡班的囚徒", director: "阿方索·卡隆", year: "2004", themeColor: "#2b2044" },
+      { text: "每个伟大的演员都不是天生的，是被生活逼出来的。", film: "超脱", director: "托尼·凯耶", year: "2011", themeColor: "#2a2a2a" },
+      { text: "向乌玛瑟曼跳舞那样去活。", film: "低俗小说", director: "昆汀·塔伦蒂诺", year: "1994", themeColor: "#3c1a1d" },
+      { text: "海豚的微笑，是世界上最大的谎言。", film: "海豚湾", director: "路易·西霍尤斯", year: "2009", themeColor: "#1a3a4d" },
+      { text: "我宁愿做一个机器人，也不愿做一个失业的工人。", film: "摩登时代", director: "查理·卓别林", year: "1936", themeColor: "#2a2a2a" },
+      { text: "好的过去并不会因为糟糕的现在而失去意义。", film: "美国往事", director: "赛尔乔·莱昂内", year: "1984", themeColor: "#3a2a1d" },
+      { text: "我对你的崇拜，就像滔滔江水绵延不绝。", film: "喜剧之王", director: "周星驰 / 李力持", year: "1999", themeColor: "#4f2739" },
+      { text: "真相只有一个，看你愿不愿意承认。", film: "致命ID", director: "詹姆斯·曼高德", year: "2003", themeColor: "#20272f" },
+      { text: "1986年的雨夜，是一座城市永远抹不掉的痕迹。", film: "杀人回忆", director: "奉俊昊", year: "2003", themeColor: "#2a2418" },
+      { text: "梦不是逃避现实的地方，而是认识自己的地方。", film: "红辣椒", director: "今敏", year: "2006", themeColor: "#4a1c2c" },
+      { text: "你看到了什么，并不重要，重要的是你怎么去想。", film: "七宗罪", director: "大卫·芬奇", year: "1995", themeColor: "#1f1f1f" },
+      { text: "原来魔法就藏在勇气的另一面。", film: "哈利·波特与密室", director: "克里斯·哥伦布", year: "2002", themeColor: "#2b2044" },
+      { text: "如果你不能成为传奇，那就成为麻烦。", film: "加勒比海盗", director: "戈尔·维宾斯基", year: "2003", themeColor: "#2a2620" },
+      { text: "一一是一个人，也是一切。", film: "一一", director: "杨德昌", year: "2000", themeColor: "#1f3043" },
+      { text: "你怎么能用一句话定义一个人？", film: "狩猎", director: "托马斯·温特伯格", year: "2012", themeColor: "#2a2c2e" },
+      { text: "凡是过去，皆为序章。", film: "唐伯虎点秋香", director: "李力持", year: "1993", themeColor: "#4a2d16" },
+      { text: "请相信世上还有奇迹。", film: "7号房的礼物", director: "李焕庆", year: "2013", themeColor: "#3a2a2a" },
+      { text: "如果是为了你而努力，再苦也是甜的。", film: "被嫌弃的松子的一生", director: "中岛哲也", year: "2006", themeColor: "#4d1c4d" },
+      { text: "你为什么如此严肃？", film: "蝙蝠侠：黑暗骑士崛起", director: "克里斯托弗·诺兰", year: "2012", themeColor: "#111c2a" },
+      { text: "把我的名字给你，把你的名字给我。", film: "请以你的名字呼唤我", director: "卢卡·瓜达尼诺", year: "2017", themeColor: "#3a3520" },
+      { text: "我希望和你一起，看尽日出与日落。", film: "爱在黎明破晓前", director: "理查德·林克莱特", year: "1995", themeColor: "#3a3a4a" },
+      { text: "我猜，每个人心里都有一座断背山。", film: "断背山", director: "李安", year: "2005", themeColor: "#2c3a2a" },
+      { text: "他唯一不能做的，就是触碰他爱的人。", film: "剪刀手爱德华", director: "蒂姆·伯顿", year: "1990", themeColor: "#2c1f2c" },
+      { text: "我看见死人。", film: "第六感", director: "M·奈特·沙马兰", year: "1999", themeColor: "#2a2a2a" },
+      { text: "我会照顾自己的，先生。", film: "超能陆战队", director: "唐·霍尔 / 克里斯·威廉姆斯", year: "2014", themeColor: "#2a3a55" },
+      { text: "你是我生命里的一首歌，我会一直听下去。", film: "甜蜜蜜", director: "陈可辛", year: "1996", themeColor: "#5a3320" },
+      { text: "可以夺走我们的生命，但夺不走我们的自由。", film: "勇敢的心", director: "梅尔·吉布森", year: "1995", themeColor: "#2c3a4a" },
+      { text: "万物有灵，皆有归宿。", film: "幽灵公主", director: "宫崎骏", year: "1997", themeColor: "#234335" },
+      { text: "回忆是会被一点点改写的，但感受不会。", film: "爱在日落黄昏时", director: "理查德·林克莱特", year: "2004", themeColor: "#3a3a4a" },
+      { text: "夏天是用来记住一个人的。", film: "菊次郎的夏天", director: "北野武", year: "1999", themeColor: "#2c4a3a" },
+      { text: "我哥哥不是我哥哥，但我得叫他哥哥。", film: "借东西的小人阿莉埃蒂", director: "米林宏昌", year: "2010", themeColor: "#314a5b" },
+      { text: "我并没有真的失去她，是她失去了真实的自己。", film: "消失的爱人", director: "大卫·芬奇", year: "2014", themeColor: "#2a2a2c" },
+      { text: "孩子，没有人会真正消失。", film: "无人知晓", director: "是枝裕和", year: "2004", themeColor: "#2c4a3a" },
+      { text: "你拥有的世界，从来不是完美的。", film: "完美的世界", director: "克林特·伊斯特伍德", year: "1993", themeColor: "#2a2c2e" },
+      { text: "每个女孩心里都住着一位天使。", film: "天使爱美丽", director: "让-皮埃尔·热内", year: "2001", themeColor: "#5a2418" },
+      { text: "人鬼殊途，缘起缘灭。", film: "倩女幽魂", director: "程小东", year: "1987", themeColor: "#4d2a55" },
+      { text: "夏天蝉鸣，森林安静，我在长大。", film: "小森林 夏秋篇", director: "森淳一", year: "2014", themeColor: "#314a5b" },
+      { text: "如果可以再活一次，我还是会爱你。", film: "时空恋旅人", director: "理查德·柯蒂斯", year: "2013", themeColor: "#3a3a4a" },
+      { text: "梦境与现实，最终都是同一个房间。", film: "未麻的部屋", director: "今敏", year: "1997", themeColor: "#2a1f2c" },
+      { text: "我不能再让你走进我的火焰里。", film: "哈利·波特与火焰杯", director: "迈克·内威尔", year: "2005", themeColor: "#2b2044" },
+      { text: "用心去听，就能听见声音背后的世界。", film: "侧耳倾听", director: "近藤喜文", year: "1995", themeColor: "#234335" },
+      { text: "你不是一个人在飞。", film: "驯龙高手", director: "迪恩·德布洛斯 / 克里斯·桑德斯", year: "2010", themeColor: "#1d3a4a" },
+      { text: "有时候，我们以为是终点，其实是新的起点。", film: "幸福终点站", director: "史蒂文·斯皮尔伯格", year: "2004", themeColor: "#244d5c" },
+      { text: "活着真的没什么意思，除非你愿意为别人活一下。", film: "一个叫欧维的男人决定去死", director: "汉内斯·赫尔姆", year: "2015", themeColor: "#2c2a25" },
+      { text: "冬天的雪，是大地写给春天的信。", film: "小森林 冬春篇", director: "森淳一", year: "2015", themeColor: "#3a4b4a" },
+      { text: "做你害怕的事，然后微笑。", film: "怪兽电力公司", director: "彼特·道格特", year: "2001", themeColor: "#274427" },
+      { text: "永远不要恨你的对手，它会蒙蔽你的判断。", film: "教父3", director: "弗朗西斯·福特·科波拉", year: "1990", themeColor: "#2b1512" },
+      { text: "再见了，伙计，我会永远记得你。", film: "玩具总动员3", director: "李·昂克里奇", year: "2010", themeColor: "#4a2d16" },
+      { text: "傲慢使别人无法爱我，偏见使我无法爱人。", film: "傲慢与偏见", director: "乔·赖特", year: "2005", themeColor: "#3a3a4a" },
+      { text: "在新世界里，谁先开口认错，谁就输了。", film: "新世界", director: "朴勋政", year: "2013", themeColor: "#1d242c" },
+      { text: "森林里的萤火虫，是亡灵留给生者的灯。", film: "萤火之森", director: "大森贵弘", year: "2011", themeColor: "#1c3a2c" },
+      { text: "我请客，您说话。", film: "茶馆", director: "谢添", year: "1982", themeColor: "#4a2a1c" },
+      { text: "你要为自己的自由付出代价。", film: "被解救的姜戈", director: "昆汀·塔伦蒂诺", year: "2012", themeColor: "#3c1a1d" },
+      { text: "我们都被分配了角色，只是有人不肯演下去。", film: "神偷奶爸", director: "皮埃尔·考芬 / 克里斯·雷诺德", year: "2010", themeColor: "#3a2a55" },
+      { text: "我有罪。", film: "告白", director: "中岛哲也", year: "2010", themeColor: "#1f242c" },
+      { text: "大圣，此去欲何？踏南天，碎凌霄。", film: "哪吒闹海", director: "严定宪 / 王树忱 / 徐景达", year: "1979", themeColor: "#5a2418" },
+      { text: "如果你不能爱真实的自己，没人能替你做到。", film: "玛丽和马克思", director: "亚当·艾略特", year: "2009", themeColor: "#2c2820" },
+      { text: "色易守，情难防。", film: "色，戒", director: "李安", year: "2007", themeColor: "#3a1f24" },
+      { text: "升官发财请走别路，贪生怕死莫入此门。", film: "九品芝麻官", director: "王晶", year: "1994", themeColor: "#4a2d16" },
+      { text: "你比孩子的世界还要大。", film: "大鱼", director: "蒂姆·伯顿", year: "2003", themeColor: "#3a2a55" },
+      { text: "饮食男女，人之大欲。", film: "喜宴", director: "李安", year: "1993", themeColor: "#5b2f1a" },
+      { text: "我们不是相同的人，所以才需要彼此。", film: "模仿游戏", director: "莫滕·泰杜姆", year: "2014", themeColor: "#223646" },
+      { text: "现实比游戏更值得你认真对待。", film: "头号玩家", director: "史蒂文·斯皮尔伯格", year: "2018", themeColor: "#2a3a55" },
+      { text: "他们以为我会一辈子做小角色，可我偏要做主角。", film: "射雕英雄传之东成西就", director: "刘镇伟", year: "1993", themeColor: "#4d2a55" },
+      { text: "情绪没有好坏，每一种都是你。", film: "头脑特工队", director: "彼特·道格特", year: "2015", themeColor: "#2f365d" },
+      { text: "你不需要变得不一样，就值得被爱。", film: "我是山姆", director: "杰茜·尼尔森", year: "2001", themeColor: "#395026" },
+      { text: "我们都曾经那样年轻，那样不舍。", film: "阳光姐妹淘", director: "姜炯哲", year: "2011", themeColor: "#5a3320" },
+      { text: "纵使万劫不复，纵使疾风骤雨。", film: "血战钢锯岭", director: "梅尔·吉布森", year: "2016", themeColor: "#3a2620" },
+      { text: "全世界都在看，我们却找不到一个倾听者。", film: "恐怖直播", director: "金秉佑", year: "2013", themeColor: "#1f242c" },
+      { text: "她从未离开，她只是一直在看着我。", film: "惊魂记", director: "阿尔弗雷德·希区柯克", year: "1960", themeColor: "#1f1f24" },
+      { text: "选择是真实的，无论是哪一种。", film: "黑客帝国3：矩阵革命", director: "莉莉·沃卓斯基 / 拉娜·沃卓斯基", year: "2003", themeColor: "#123b2b" },
+      { text: "无论你在世界的哪个角落，我都会再去寻找你。", film: "你的名字。", director: "新海诚", year: "2016", themeColor: "#3a3a4a" },
+      { text: "如果你犯了罪，你会得到惩罚。", film: "三块广告牌", director: "马丁·麦克唐纳", year: "2017", themeColor: "#3a1f24" },
+      { text: "你愿意玩一个游戏吗？", film: "电锯惊魂", director: "詹姆斯·温", year: "2004", themeColor: "#2a1417" },
+      { text: "活着的每一秒，都不应该被浪费。", film: "达拉斯买家俱乐部", director: "让-马克·瓦雷", year: "2013", themeColor: "#3b2a1d" },
+      { text: "每个人都有秘密，每个秘密都是一座迷宫。", film: "心迷宫", director: "忻钰坤", year: "2014", themeColor: "#1f242c" },
+      { text: "新的不一定是更好的，但旧的我们也不再属于。", film: "疯狂原始人", director: "柯克·德米科 / 克里斯·桑德斯", year: "2013", themeColor: "#4a2d16" },
+      { text: "我没有名字，没有过去，只有任务。", film: "谍影重重3", director: "保罗·格林格拉斯", year: "2007", themeColor: "#1d2436" },
+      { text: "兄弟如手足，女人如衣服。", film: "英雄本色", director: "吴宇森", year: "1986", themeColor: "#1d2436" },
+      { text: "上帝之城，是被遗忘的人写下的史诗。", film: "上帝之城", director: "费尔南多·梅雷莱斯", year: "2002", themeColor: "#5a3320" },
+      { text: "风是大地的呼吸，我们只是经过的人。", film: "风之谷", director: "宫崎骏", year: "1984", themeColor: "#234d5b" },
+      { text: "我们之间没有未来，只有一夜的午夜。", film: "爱在午夜降临前", director: "理查德·林克莱特", year: "2013", themeColor: "#3a3a4a" },
+      { text: "我们都活着，是因为有一双手愿意为我们撑伞。", film: "绿里奇迹", director: "弗兰克·德拉邦特", year: "1999", themeColor: "#2c4a3a" },
+      { text: "兄弟一旦上路，便不再回头。", film: "纵横四海", director: "吴宇森", year: "1991", themeColor: "#1d2436" },
+      { text: "你想我笑成什么样？", film: "小丑", director: "托德·菲利普斯", year: "2019", themeColor: "#2c1f4a" },
+      { text: "饭店关上门，世界就消失了。", film: "卢旺达饭店", director: "特里·乔治", year: "2004", themeColor: "#3b2a1d" },
+      { text: "人都是有两张脸的，区别是你愿不愿意承认。", film: "背靠背，脸对脸", director: "黄建新", year: "1994", themeColor: "#3a2a1d" },
+      { text: "我只想记得自己是谁。", film: "记忆碎片", director: "克里斯托弗·诺兰", year: "2000", themeColor: "#1f242c" },
+      { text: "也许我们都需要一个理由继续走下去。", film: "心灵奇旅", director: "彼特·道格特", year: "2020", themeColor: "#2a3a55" },
+      { text: "我顶你个肺。", film: "疯狂的石头", director: "宁浩", year: "2006", themeColor: "#4a2d16" },
+      { text: "若是有心，请尽情吵闹这世界。", film: "雨中曲", director: "斯坦利·多南", year: "1952", themeColor: "#3a3a4a" },
+      { text: "我看到了星辰大海，也看到了空旷孤独。", film: "2001太空漫游", director: "斯坦利·库布里克", year: "1968", themeColor: "#101e3a" },
+      { text: "我已经不是当年的那个我了。", film: "无间道2", director: "刘伟强 / 麦兆辉", year: "2003", themeColor: "#172438" },
+      { text: "活了一辈子，就指望能记得几个名字。", film: "忠犬八公物语", director: "神山征二郎", year: "1987", themeColor: "#4a3523" },
+      { text: "我们不是一家人，但我们一起吃饭。", film: "小偷家族", director: "是枝裕和", year: "2018", themeColor: "#2c4a3a" },
+      { text: "世界从来不温柔，但故事可以。", film: "荒蛮故事", director: "达米安·斯兹弗隆", year: "2014", themeColor: "#3a2620" },
+      { text: "你可以打败我，但你打不死我心里那个节拍。", film: "无敌破坏王", director: "瑞奇·摩尔", year: "2012", themeColor: "#2a3a55" },
+      { text: "不是我的节奏，是这个时代的。", film: "爆裂鼓手", director: "达米恩·查泽雷", year: "2014", themeColor: "#2a1417" },
+      { text: "今天看到松鼠了吗？", film: "冰川时代", director: "克里斯·韦奇", year: "2002", themeColor: "#314a5b" },
+      { text: "船上有几个人，没有人能告诉我。", film: "恐怖游轮", director: "克里斯托弗·史密斯", year: "2009", themeColor: "#1f242c" },
+      { text: "少年的世界里，连星空都是潮湿的。", film: "牯岭街少年杀人事件", director: "杨德昌", year: "1991", themeColor: "#1f3043" },
+      { text: "命运给的，不一定是你想要的。", film: "贫民窟的百万富翁", director: "丹尼·博伊尔", year: "2008", themeColor: "#5a3320" },
+      { text: "圣诞节就是孩子，孩子就是希望。", film: "东京教父", director: "今敏", year: "2003", themeColor: "#4a1c2c" },
+      { text: "你被这个时代抛弃了，并没有人通知过你。", film: "东邪西毒", director: "王家卫", year: "1994", themeColor: "#3a2a1d" },
+      { text: "出门要带着面包，更要带着勇气。", film: "魔女宅急便", director: "宫崎骏", year: "1989", themeColor: "#395026" },
+      { text: "如果今天是你生命的最后一天，你还会做你现在做的事吗？", film: "遗愿清单", director: "罗伯·莱纳", year: "2007", themeColor: "#3b2a1d" },
+      { text: "看似偶然的相遇，其实都是命运的安排。", film: "大佛普拉斯", director: "黄信尧", year: "2017", themeColor: "#2a2a2a" },
+      { text: "我看起来好像很好吃。", film: "你看起来好像很好吃", director: "藤森雅也", year: "2010", themeColor: "#4d2a16" },
+      { text: "美丽的羚羊，奔跑在风里。", film: "可可西里", director: "陆川", year: "2004", themeColor: "#3a2620" },
+      { text: "完美来自一寸一寸的痛苦。", film: "黑天鹅", director: "达伦·阿罗诺夫斯基", year: "2010", themeColor: "#1f1f24" },
+      { text: "城市的光，会找到该被照亮的人。", film: "城市之光", director: "查理·卓别林", year: "1931", themeColor: "#2a2a2a" },
+      { text: "如果你可以回到过去，你会停在哪一秒？", film: "源代码", director: "邓肯·琼斯", year: "2011", themeColor: "#1d2436" },
+      { text: "圣诞节真正的礼物，是有人想着你。", film: "真爱至上", director: "理查德·柯蒂斯", year: "2003", themeColor: "#3a3a4a" },
+      { text: "我们无法对一个失去亲人的男人说，没事的。", film: "海边的曼彻斯特", director: "肯尼斯·罗纳根", year: "2016", themeColor: "#1d3a4a" },
+      { text: "我们一直被告诉要笑着活下去。", film: "末路狂花", director: "雷德利·斯科特", year: "1991", themeColor: "#3c1416" },
+      { text: "这就是真实的人生。", film: "波西米亚狂想曲", director: "布莱恩·辛格", year: "2018", themeColor: "#2c1f4a" },
+      { text: "我的兄弟是我所有的天赋。", film: "雨人", director: "巴瑞·莱文森", year: "1988", themeColor: "#3b2a1d" },
+      { text: "我喜欢上你了，这是我做过最勇敢的事。", film: "初恋这件小事", director: "蓬蓬·塔纳查诺克", year: "2010", themeColor: "#5a2418" },
+      { text: "千年之后，谁还记得我是青蛇。", film: "青蛇", director: "徐克", year: "1993", themeColor: "#1f3a2a" },
+      { text: "也许有一天，所有的孤独都会被看见。", film: "人工智能", director: "史蒂文·斯皮尔伯格", year: "2001", themeColor: "#1f242c" },
+      { text: "我会爱你，从这一秒，到下一辈子。", film: "恋恋笔记本", director: "尼克·卡萨维茨", year: "2004", themeColor: "#3a3a4a" },
+      { text: "对啊，简直就是个奇迹。", film: "虎口脱险", director: "杰拉尔·乌里", year: "1966", themeColor: "#5a3320" },
+      { text: "见证我！", film: "疯狂的麦克斯4：狂暴之路", director: "乔治·米勒", year: "2015", themeColor: "#3c1416" },
+      { text: "未来不是命中注定，是我们走出来的。", film: "终结者2：审判日", director: "詹姆斯·卡梅隆", year: "1991", themeColor: "#3c1416" },
+      { text: "孔子曰：知之为知之，不知为不知。", film: "新龙门客栈", director: "李惠民", year: "1992", themeColor: "#3a2a1d" },
+      { text: "做人嘛，最重要的是开心。", film: "芙蓉镇", director: "谢晋", year: "1986", themeColor: "#4a2a1c" },
+      { text: "好故事就该被讲到最后一行。", film: "无耻混蛋", director: "昆汀·塔伦蒂诺", year: "2009", themeColor: "#3c1a1d" },
+      { text: "命运并不在意你是否有资格。", film: "千钧一发", director: "安德鲁·尼科尔", year: "1997", themeColor: "#1d2436" },
+      { text: "海是有记忆的，会把丢掉的人送回来。", film: "崖上的波妞", director: "宫崎骏", year: "2008", themeColor: "#1a3a4d" },
+      { text: "我们曾相爱，想到就心酸。", film: "花束般的恋爱", director: "土井裕泰", year: "2021", themeColor: "#3a3a4a" },
+      { text: "夜走入夜，我们便看见彼此。", film: "彗星来的那一夜", director: "詹姆斯·沃德·布柯特", year: "2013", themeColor: "#1f242c" },
+      { text: "勇气不是没有恐惧，而是带着恐惧出发。", film: "哈利·波特与死亡圣器(上)", director: "大卫·叶茨", year: "2010", themeColor: "#2b2044" },
+      { text: "做你自己，因为别人都被人做过了。", film: "奇迹男孩", director: "斯蒂芬·卓博斯基", year: "2017", themeColor: "#2f365d" },
+      { text: "我不再是被命运选中的人，而是选择命运的人。", film: "黑客帝国2：重装上阵", director: "莉莉·沃卓斯基 / 拉娜·沃卓斯基", year: "2003", themeColor: "#123b2b" },
+      { text: "她们的眼睛里，藏着整个时代。", film: "二十二", director: "郭柯", year: "2017", themeColor: "#2a2a2a" },
+      { text: "保持冷静，准备种土豆。", film: "火星救援", director: "雷德利·斯科特", year: "2015", themeColor: "#3b2a1d" },
+      { text: "你以为是石头，其实是别人的命。", film: "血钻", director: "爱德华·兹威克", year: "2006", themeColor: "#3c1a1d" },
+      { text: "战争永远不会结束，因为生意永远在做。", film: "战争之王", director: "安德鲁·尼科尔", year: "2005", themeColor: "#1f242c" },
+      { text: "走得太快的话，就会落下一些东西。", film: "步履不停", director: "是枝裕和", year: "2008", themeColor: "#2c4a3a" },
+      { text: "你需要的，是从清单上划掉这一项的勇气。", film: "白日梦想家", director: "本·斯蒂勒", year: "2013", themeColor: "#1d3a4a" },
+      { text: "我们都被困在一个房间里，区别是有没有窗。", film: "房间", director: "莱尼·阿伯拉罕森", year: "2015", themeColor: "#2c2a25" },
+      { text: "魂断蓝桥，从此天涯陌路。", film: "魂断蓝桥", director: "茂文·勒鲁瓦", year: "1940", themeColor: "#3a3a4a" },
+      { text: "记忆不是终点，是路过。", film: "谍影重重2", director: "保罗·格林格拉斯", year: "2004", themeColor: "#1d2436" },
+      { text: "命令是要执行的，但人不是机器。", film: "高山下的花环", director: "谢晋", year: "1984", themeColor: "#3a2620" },
+      { text: "鸟儿之所以歌唱，是因为它有故事要讲。", film: "哈利·波特与凤凰社", director: "大卫·叶茨", year: "2007", themeColor: "#2b2044" },
+      { text: "想象不到的世界，恰恰是属于你的世界。", film: "蜘蛛侠：平行宇宙", director: "鲍勃·佩尔西凯蒂 / 彼得·拉姆齐", year: "2018", themeColor: "#3a1f24" },
+      { text: "你只要尽力，剩下的交给时间。", film: "弱点", director: "约翰·李·汉考克", year: "2009", themeColor: "#3b2a1d" },
+      { text: "看清楚他们的脸，再决定要不要相信。", film: "谍影重重", director: "道格·里曼", year: "2002", themeColor: "#1d2436" },
+      { text: "她最美的时候，是没有人看见的时候。", film: "大红灯笼高高挂", director: "张艺谋", year: "1991", themeColor: "#4a2a1c" },
+      { text: "无脚的鸟儿，只能一直飞。", film: "阿飞正传", director: "王家卫", year: "1990", themeColor: "#3a2a1d" },
+      { text: "我宁愿在你的故事里被记住，也不愿在自己的故事里被遗忘。", film: "朗读者", director: "斯蒂芬·戴德利", year: "2008", themeColor: "#2c2820" },
+      { text: "如果再让我遇见你，我一定会牢牢抓住。", film: "再次出发之纽约遇见你", director: "约翰·卡尼", year: "2013", themeColor: "#3a3a4a" },
+      { text: "我会回家，无论多远多久。", film: "V字仇杀队", director: "詹姆斯·麦克特格", year: "2005", themeColor: "#2f1625" },
+      { text: "梦想是奢侈品，但每个人都有权拥有。", film: "猫鼠游戏", director: "史蒂文·斯皮尔伯格", year: "2002", themeColor: "#1d324a" },
+      { text: "活下来的，必须把死去的故事讲给世界听。", film: "辛德勒的名单", director: "史蒂文·斯皮尔伯格", year: "1993", themeColor: "#2c2c2b" },
+      { text: "你只是一个孩子，所以你以为大人不会哭。", film: "怦然心动", director: "罗伯·莱纳", year: "2010", themeColor: "#395026" },
+      { text: "再大的风浪，也吹不散我们一起吃过的饭。", film: "饮食男女", director: "李安", year: "1994", themeColor: "#5b2f1a" },
+      { text: "一个人无论多么孤独，都不要忘了仰望星空。", film: "星际穿越", director: "克里斯托弗·诺兰", year: "2014", themeColor: "#101e3a" },
+      { text: "梦境的第一层，是别人的世界；最深的一层，是你自己的心。", film: "盗梦空间", director: "克里斯托弗·诺兰", year: "2010", themeColor: "#172d37" },
+      { text: "也许真正的成长，是学会和不完美的自己握手言和。", film: "心灵奇旅", director: "彼特·道格特", year: "2020", themeColor: "#2a3a55" },
     ];
 
     const quotes = rawQuotes.map((item) => ({
@@ -746,7 +929,7 @@
     const quoteGhost = document.getElementById("quoteGhost");
     const film = document.getElementById("film");
     const year = document.getElementById("year");
-    const sourceDot = document.getElementById("sourceDot");
+    const sourceMeter = document.getElementById("sourceMeter");
     const nextButton = document.getElementById("nextButton");
     const searchForm = document.getElementById("searchForm");
     const searchInput = document.getElementById("searchInput");
@@ -758,25 +941,10 @@
     let activeBackdrop = 0;
     let quoteQueue = [];
 
-    const ONLINE_BUFFER_TARGET = 5;
-    const ONLINE_BUFFER_MIN = 3;
-    const ONLINE_PICK_PROBABILITY = 0.3;
-    let onlineBuffer = [];
-    let onlineRefilling = false;
-    let onlineDisabled = false;
-
     function pickQuote() {
-      if (!onlineDisabled && onlineBuffer.length > 0 && Math.random() < ONLINE_PICK_PROBABILITY) {
-        const item = onlineBuffer.shift();
-        currentIndex = -1;
-        if (onlineBuffer.length < ONLINE_BUFFER_MIN) refillOnlineBuffer();
-        return item;
-      }
-
       if (quoteQueue.length === 0) {
         quoteQueue = buildShuffledQueue(currentIndex);
       }
-
       currentIndex = quoteQueue.shift();
       return quotes[currentIndex];
     }
@@ -806,8 +974,13 @@
       const meta = [item.director, item.year].filter(Boolean).join(" / ");
       year.textContent = meta || " ";
       const source = item.source === "online" ? "online" : "local";
-      sourceDot.dataset.source = source;
-      sourceDot.title = source === "online" ? "联网" : "本地";
+      sourceMeter.dataset.source = source;
+      if (source === "online") {
+        sourceMeter.textContent = "联网";
+      } else {
+        const localIndex = currentIndex >= 0 ? currentIndex + 1 : quotes.indexOf(item) + 1;
+        sourceMeter.textContent = `${localIndex} / ${quotes.length}`;
+      }
 
       if (!previousText) {
         quote.textContent = incomingText;
@@ -960,44 +1133,6 @@
         themeColor: computeMoodColor(chosen.hitokoto, film, director),
         source: "online"
       };
-    }
-
-    function pickRandomFromBundle(bundle) {
-      if (!Array.isArray(bundle) || bundle.length === 0) return null;
-      const chosen = bundle[Math.floor(Math.random() * bundle.length)];
-      if (!chosen || !chosen.hitokoto) return null;
-      const film = (chosen.from || "").trim();
-      const director = (chosen.from_who || "").trim();
-      return {
-        text: chosen.hitokoto,
-        film: film || "佚名",
-        director: director || undefined,
-        year: "",
-        themeColor: computeMoodColor(chosen.hitokoto, film, director),
-        source: "online"
-      };
-    }
-
-    async function refillOnlineBuffer() {
-      if (onlineRefilling || onlineDisabled) return;
-      if (onlineBuffer.length >= ONLINE_BUFFER_TARGET) return;
-      onlineRefilling = true;
-      try {
-        const bundle = await loadHitokotoBundle();
-        while (onlineBuffer.length < ONLINE_BUFFER_TARGET) {
-          const item = pickRandomFromBundle(bundle);
-          if (!item) break;
-          onlineBuffer.push(item);
-        }
-      } catch (error) {
-        onlineDisabled = true;
-      } finally {
-        onlineRefilling = false;
-      }
-    }
-
-    function preheatOnlineBuffer() {
-      refillOnlineBuffer();
     }
 
     async function fetchOnlineQuote(query) {
@@ -1219,7 +1354,6 @@
       handleSearch(searchInput.value);
       if (actionStage.dataset.mode === "playing") stopAutoplay();
     });
-    preheatOnlineBuffer();
     renderQuote(false);
   </script>
 </body>
