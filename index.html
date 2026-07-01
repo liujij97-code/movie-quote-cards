@@ -618,6 +618,8 @@
 
   <div class="signature">一帧一句</div>
 
+  <audio id="bgMusic" preload="auto"></audio>
+
   <script>
     const defaultProofread = {
       label: "待校对",
@@ -1300,12 +1302,100 @@
     let autoTimer = null;
     let autoInterval = 6000;
 
+    // ── 本地音乐播放器：随机播放列表 + 声音蒙太奇 ───────────────────────────
+    const PLAYLIST = [
+      "canon-in-d.mp3",
+      "river-flows-in-you.mp3",
+      "katawaredoki.mp3",
+      "moonlight-sonata.mp3",
+    ];
+    const MUSIC_VOL = 0.38;
+    const bgMusic = document.getElementById("bgMusic");
+    let musicFader = null;
+    let musicActive = false;
+    let trackIndex = 0;
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function pickNextTrack() {
+      if (PLAYLIST.length <= 1) return 0;
+      let next;
+      do { next = Math.floor(Math.random() * PLAYLIST.length); } while (next === trackIndex);
+      return next;
+    }
+
+    bgMusic.addEventListener("ended", () => {
+      trackIndex = pickNextTrack();
+      bgMusic.src = PLAYLIST[trackIndex];
+      bgMusic.volume = MUSIC_VOL;
+      bgMusic.play().catch(() => {});
+    });
+
+    function clearMusicFader() {
+      if (musicFader !== null) { clearInterval(musicFader); musicFader = null; }
+    }
+
+    function fadeMusic(toVol, ms, onDone) {
+      clearMusicFader();
+      const fromVol = bgMusic.volume;
+      const diff = toVol - fromVol;
+      if (Math.abs(diff) < 0.001) { if (onDone) onDone(); return; }
+      const STEPS = 40;
+      const tick = ms / STEPS;
+      let step = 0;
+      musicFader = setInterval(() => {
+        step++;
+        bgMusic.volume = Math.min(1, Math.max(0, fromVol + diff * step / STEPS));
+        if (step >= STEPS) {
+          clearMusicFader();
+          bgMusic.volume = toVol;
+          if (onDone) onDone();
+        }
+      }, tick);
+    }
+
+    function musicStart() {
+      if (musicActive) return;
+      musicActive = true;
+      shuffleArray(PLAYLIST);
+      trackIndex = 0;
+      bgMusic.src = PLAYLIST[0];
+      bgMusic.volume = 0;
+      bgMusic.play().catch(() => {});
+      fadeMusic(MUSIC_VOL, 2000);
+    }
+
+    function musicStop() {
+      musicActive = false;
+      fadeMusic(0, 1500, () => { bgMusic.pause(); bgMusic.currentTime = 0; });
+    }
+
+    // 换台词：2s淡出 → 文字切换 + 音频快进15~30s → 2s淡入
+    function renderQuoteWithMontage() {
+      if (!musicActive) { renderQuote(); return; }
+      fadeMusic(0, 2000, () => {
+        renderQuote();
+        const skip = 15 + Math.random() * 15;
+        if (bgMusic.duration && isFinite(bgMusic.duration)) {
+          bgMusic.currentTime = Math.min(bgMusic.currentTime + skip, bgMusic.duration - 4);
+        }
+        fadeMusic(MUSIC_VOL, 2000);
+      });
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     function startAutoplay() {
       stopAutoTimer();
-      autoTimer = window.setInterval(() => renderQuote(), autoInterval);
+      autoTimer = window.setInterval(() => renderQuoteWithMontage(), autoInterval);
       actionStage.dataset.mode = "playing";
       autoButton.classList.add("is-active");
       autoButton.setAttribute("aria-pressed", "true");
+      musicStart();
     }
 
     function stopAutoplay() {
@@ -1313,6 +1403,7 @@
       actionStage.dataset.mode = "idle";
       autoButton.classList.remove("is-active");
       autoButton.setAttribute("aria-pressed", "false");
+      musicStop();
     }
 
     function stopAutoTimer() {
