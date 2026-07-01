@@ -1375,18 +1375,8 @@
       fadeMusic(0, 1500, () => { bgMusic.pause(); bgMusic.currentTime = 0; });
     }
 
-    // 换台词：2s淡出 → 文字切换 + 音频快进15~30s → 2s淡入
-    function renderQuoteWithMontage() {
-      if (!musicActive) { renderQuote(); return; }
-      fadeMusic(0, 2000, () => {
-        renderQuote();
-        const skip = 15 + Math.random() * 15;
-        if (bgMusic.duration && isFinite(bgMusic.duration)) {
-          bgMusic.currentTime = Math.min(bgMusic.currentTime + skip, bgMusic.duration - 4);
-        }
-        fadeMusic(MUSIC_VOL, 2000);
-      });
-    }
+    // 台词切换与音乐完全独立：音乐按自然时长播完，ended 事件负责切下一首
+    function renderQuoteWithMontage() { renderQuote(); }
     // ────────────────────────────────────────────────────────────────────────
 
     function startAutoplay() {
